@@ -1,0 +1,18 @@
+The following metadata is required from the client during registration:
+
+client_id: Unique identifier for the client. Use ID in MongoDB
+client_name: Client name for end users
+
+backchannel_token_delivery_mode: poll
+backchannel_authentication_request_signing_alg: JSON Web Signature algorithm used for the authenticating the client.
+
+id_token_signed_response_alg: JSON Web Signature algorithm
+id_token_encrypted_response_alg: JSON Web Encryption algorithm
+
+jwks_uri: URL for the Client's JSON Web Key Set document
+request_object_signing_alg: JSON Web Signature algorithm used for the auth request. Server will use this algorithm and the provided jwks to authenticate client
+
+token_endpoint_auth_method: Client authenticate method. Must be private_key_jwt
+token_endpoint_auth_signing_alg: JSON Web Signature algorithm used for the authenticating the client.
+
+redirect_uris

@@ -1,0 +1,53 @@
+trigger:
+- none
+
+resources:
+- repo: self
+
+pool:
+  vmImageName: 'ubuntu-latest'
+
+variables:
+- group: development
+- name: dockerfilePath
+  value: '$(Build.SourcesDirectory)/Dockerfile'
+- name: buildTag
+  value: '$(containerTagPrefix)$(Build.BuildId)'
+- name: latestTag
+  value: '$(containerTagPrefix)latest'
+- name: imageRepository
+  value: auth-server 
+  
+stages:
+- stage: Build
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: DownloadSecureFile@1
+      name: npmrc
+      displayName: 'Download .npmrc config.'
+      inputs:  
+        secureFile: '.npmrc'
+    - script: cp $(npmrc.secureFilePath) .
+      displayName: 'moving .npmrc into the Dockerfile context'
+    - script: "echo \
+COSMOSDB_CONNECTION_URL=$COSMOSDB_CONNECTION_URL $'\n'\
+CLIENTDB_CONNECTION_URL=$CLIENTDB_CONNECTION_URL $'\n'\
+MONGODB_CONNECTION_URL=$MONGODB_CONNECTION_URL $'\n'\
+> .env"
+      displayName: 'Saving environmental variables'
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(buildTag)
+          $(latestTag)
+

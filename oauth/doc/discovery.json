@@ -1,0 +1,34 @@
+{
+  "issuer":
+    "https://auth.app.presidioidentity.net/",
+  "authorization_endpoint":
+    "https://auth.app.presidioidentity.net/auth",
+  "backchannel_token_delivery_modes_supported":
+    ["poll"],
+  "backchannel_authentication_request_signing_alg_values_supported":
+    ["PS256", "PS512", "ES256", "ES512"],
+  "token_endpoint":
+    "https://auth.app.presidioidentity.net/token",
+  "token_endpoint_auth_methods_supported":
+    ["private_key_jwt"],
+  "token_endpoint_auth_signing_alg_values_supported":
+    ["PS256", "PS512", "ES256", "ES512"],
+  "userinfo_endpoint":
+    "https://auth.app.presidioidentity.net/userinfo",
+  "jwks_uri":
+    "https://auth.app.presidioidentity.net/auth",
+  "scopes_supported":
+    ["openid"],
+  "response_types_supported":
+    ["id_token", "token id_token"],
+  "id_token_signing_alg_values_supported":
+    ["PS256", "PS512", "ES256", "ES512"],
+  "id_token_encryption_alg_values_supported":
+    ["RSA-OAEP-256"],
+  "id_token_encryption_enc_values_supported":
+    [],
+  "request_object_signing_alg_values_supported":
+    ["PS256", "PS512", "ES256", "ES512"],
+  "claims_supported":
+    ["sub", "iss", "auth_time"]
+  }

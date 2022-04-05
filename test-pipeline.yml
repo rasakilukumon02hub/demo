@@ -1,0 +1,40 @@
+trigger:
+- none
+
+resources:
+- repo: self
+
+pool:
+  vmImageName: 'ubuntu-latest'
+
+variables:
+- group: env-dev
+- name: dockerRegistryServiceConnection
+  value: 6e27cc22-c92e-420d-beba-069bb38a8379
+- name: containerRegistry
+  value: 'presidioidentity.azurecr.io'
+- name: dockerfilePath
+  value: '$(Build.SourcesDirectory)/Dockerfile'
+- name: tag
+  value: '$(Build.BuildId)'
+- name: imageRepository
+  value: authserver
+ 
+stages:
+- stage: Test
+  displayName: Test image
+  jobs:
+  - job: Test
+    displayName: Test
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '12.x'
+      displayName: 'Install Node.js'
+    - script: |
+        npm install
+        npm run test
+      workingDirectory: '$(Build.SourcesDirectory)'
+      displayName: 'npm install and test'

@@ -1,0 +1,10 @@
+version: '3'
+services:
+  identity-server:
+    build: ./
+    image: presidioidentity.azurecr.io/auth-server:dev
+    container_name: auth-server
+    ports:
+        - "443:443"
+        - "8000:8000"
+

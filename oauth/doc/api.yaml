@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Presidio Identity OpenID Connect Client Initiated Backchannel Authentication
+  description: https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html
+  version: 0.0.1
+servers:
+  - url: http://auth.app.presidioidentity.net/
+    description: Production 
+components:
+  parameters:
+    grant_type:
+      name: grant_type
+      in: query
+      description: "Must be urn:openid:params:grant-type:ciba"
+      schema:
+        type: string
+    client_id:
+      name: client_id
+      in: query
+      description: "Unique identifier registered for the client"
+      schema:
+        type: string
+    client_assertion_type:
+      name: client_assertion_type
+      in: query
+      description: "Must be urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+      schema:
+        type: string
+    client_assertion:
+      name: client_assertion
+      in: query
+      description: |
+        JWT signed by the token_endpoint_auth_method specified in the registration metadata. Must contain the following claims:
+
+        iss: same as client_id, which is the unique client identifier registered in the metadata
+        sub: same as client_id, which is the unique client identifier registered in the metadata
+        aud: must be set to token endpoint
+        exp: expiration time of JWT. Should be set to one hour.
+        nbf: not before. Should be set to issed time.
+        iat: issued time
+        jti: One-time unique identifier. Server will check that jti is not reused before expiration time.
+      schema:
+        type: string
+    request:
+      name: request
+      in: query
+      description: |
+        JWT signed by the backchannel_authentication_request_signing_alg specified in the registration metadata. Must contain the following claims:
+
+        iss: same as client_id, which is the unique client identifier registered in the metadata
+        aud: must be set to token endpoint
+        exp: expiration time of JWT. Should be set to one hour.
+        nbf: not before time. Should be set to issed time.
+        iat: issued time
+        jti: One-time unique identifier. Different from client_assertion. Server will check that jti is not reused before expiration time.
+        scope: Authorization scope requested by the OAuth client. Must include openid
+        redirect_uri: URI to redirect user, after completion authentication. Must be registered in metadata
+      schema:
+        type: string
+    auth_req_id:
+      name: auth_req_id
+      in: query
+      description: Unique long identifier issued from the OIDC server to the client for fetching authentication results.
+      schema:
+        type: string
+  schemas:
+    auth_success:
+      title: Authentication request success
+      type: object
+      properties:
+        auth_req_id:
+          type: string
+          description: Unique long string to track the authentication request. Will be used for polling for token results.
+        redirect_uri:
+          type: string
+          description: URL to hand out to user to complete authentication, if on the same mobile device.
+        expires_in:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Expiration time in seconds for the authentication request. 
+        interval:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Minimum elapsed time in seconds Client must wait between polls.
+    token_success:
+      title: Token request success
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: |
+            JWT signed by the OIDC server private key, then encrypted with different set of server public key.
+            OIDC Resource Server will decrypt this token, verify the signature before authorizing the resources. 
+        token_type:
+          type: string
+          description: Must be equal to Bearer
+        refresh_token:
+          type: string
+          description: |
+            JWT signed by the OIDC server private key. Client can use this key to fetch another access_token.
+        expires_in:
+          type: number
+          description: Expiration time of access token in seconds since the resonse was generated.
+        id_token:
+          type: string
+          description: |
+            JWT signed by server private key, then encrypted with the key fetched from jwks_uri specified in the registration metadata. 
+            Signature algorithm is set in id_token_signed_response_alg, with the public key format set in id_token_encrypted_response_enc.
+
+            Must contain the following claims:
+
+            iss: must be set to token endpoint
+            aud: client_id
+            exp: expiration time of JWT. Should be set to one hour.
+            nbf: not before time. Should be set to issed time.
+            iat: issued time
+            jti: One-time unique identifier.
+            sub: user account information.
+            auth_time: time of authentication
+paths:
+  /auth:
+    post:
+      summary: Initiate a authentication request
+      description: Client can use this API to request an authorization. The server will validate the request.
+      parameters:
+        - $ref: '#/components/parameters/request'
+        - $ref: '#/components/parameters/client_id'
+        - $ref: '#/components/parameters/client_assertion_type'
+        - $ref: '#/components/parameters/client_assertion'
+
+      responses:
+        '200':    # status code
+          description: Authentication request successful acknowledgement
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/auth_success'
+        '400':
+          description: Bad Request. Missing parameters, or failed client authentication, or invalid token
+  /token:
+    post:
+      summary: Poll authentication result for tokens.
+      description: Client will use this API to routinely poll the Auth server for the auth tokens.
+      parameters:
+        - $ref: '#/components/parameters/grant_type'
+        - $ref: '#/components/parameters/auth_req_id'
+        - $ref: '#/components/parameters/client_id'
+        - $ref: '#/components/parameters/client_assertion_type'
+        - $ref: '#/components/parameters/client_assertion'
+      responses:
+        '200':    # status code
+          description: Token request successful acknowledgement and tokens
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/token_success'
+        '400':
+          description: Bad Request. Missing parameters, or failed client authentication, or invalid token
+  /jwks:
+    get:
+      summary: List of keys for signature verification
+      parameters:
+        - $ref: '#/components/parameters/client_assertion_type'
+        - $ref: '#/components/parameters/client_assertion'
+      responses:
+        '200':
+          description: An array of JSON Web Keys used to verify signatures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  

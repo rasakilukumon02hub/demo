@@ -1,0 +1,12 @@
+{
+    "client_name" : "Presidio Identity Test App",
+    "backchannel_token_delivery_mode" : "poll",
+    "backchannel_authentication_request_signing_alg" : "",
+    "id_token_signed_response_alg" : "",
+    "id_token_encrypted_response_alg" : "",
+    "jwks_uri" : "",
+    "request_object_signing_alg" : "",
+    "token_endpoint_auth_method" : "private_key_jwt",
+    "token_endpoint_auth_signing_alg" : "",
+    "redirect_uris" : [ ]
+  }
